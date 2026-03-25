@@ -34,16 +34,16 @@ static uint8_t mb_slave_id[] = { MB_ID_BYTE0(MB_CONTROLLER_SLAVE_ID),
 #define REG_SIZE(type, nregs) ((type == MB_PARAM_INPUT) || (type == MB_PARAM_HOLDING)) ? (nregs >> 1) : (nregs << 3)
 
 // Common interface pointer for slave port
-static mb_slave_interface_t* slave_interface_ptr = NULL;
+static mb_slave_interface_t* slave_interface_ptr[MB_IFACE_CNT] = {NULL};
 static const char TAG[] __attribute__((unused)) = "MB_CONTROLLER_SLAVE";
 
 // Searches the register in the area specified by type, returns descriptor if found, else NULL
-static mb_descr_entry_t* mbc_slave_find_reg_descriptor(mb_param_type_t type, uint16_t addr, size_t regs)
+static mb_descr_entry_t* mbc_slave_find_reg_descriptor(mb_param_type_t type, uint16_t addr, size_t regs, mb_iface_type_t iface)
 {
     mb_descr_entry_t* it;
     uint16_t reg_size = 0;
 
-    mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+    mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface]->opts;
 
     if (LIST_EMPTY(&mbs_opts->mbs_area_descriptors[type])) {
         return NULL;
@@ -63,10 +63,10 @@ static mb_descr_entry_t* mbc_slave_find_reg_descriptor(mb_param_type_t type, uin
     return NULL;
 }
 
-static void mbc_slave_free_descriptors(void) {
+static void mbc_slave_free_descriptors(mb_iface_type_t iface) {
 
     mb_descr_entry_t* it;
-    mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+    mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface]->opts;
 
     for (int descr_type = 0; descr_type < MB_PARAM_COUNT; descr_type++) {
         while ((it = LIST_FIRST(&mbs_opts->mbs_area_descriptors[descr_type]))) {
@@ -76,10 +76,10 @@ static void mbc_slave_free_descriptors(void) {
     }
 }
 
-void mbc_slave_init_iface(void* handler)
+void mbc_slave_init_iface(void* handler, mb_iface_type_t iface)
 {
-    slave_interface_ptr = (mb_slave_interface_t*) handler;
-    mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+    slave_interface_ptr[iface] = (mb_slave_interface_t*) handler;
+    mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface] ->opts;
     // Initialize list head for register areas
     LIST_INIT(&mbs_opts->mbs_area_descriptors[MB_PARAM_INPUT]);
     LIST_INIT(&mbs_opts->mbs_area_descriptors[MB_PARAM_HOLDING]);
@@ -90,43 +90,43 @@ void mbc_slave_init_iface(void* handler)
 /**
  * Modbus controller destroy function
  */
-esp_err_t mbc_slave_destroy(void)
+esp_err_t mbc_slave_destroy(mb_iface_type_t iface)
 {
     esp_err_t error = ESP_OK;
     // Is initialization done?
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
     // Check if interface has been initialized
-    MB_SLAVE_CHECK((slave_interface_ptr->destroy != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface]->destroy != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
     // Call the slave port destroy function
-    error = slave_interface_ptr->destroy();
+    error = slave_interface_ptr[iface]->destroy();
     MB_SLAVE_CHECK((error == ESP_OK),
                     ESP_ERR_INVALID_STATE,
                     "Slave destroy failure error=(0x%x).",
                     (int)error);
     // Destroy all opened descriptors
-    mbc_slave_free_descriptors();
-    free(slave_interface_ptr);
-    slave_interface_ptr = NULL;
+    mbc_slave_free_descriptors(iface);
+    free(slave_interface_ptr[iface]);
+    slave_interface_ptr[iface] = NULL;
     return error;
 }
 
 /**
  * Setup Modbus controller parameters
  */
-esp_err_t mbc_slave_setup(void* comm_info)
+esp_err_t mbc_slave_setup(void* comm_info, mb_iface_type_t iface)
 {
     esp_err_t error = ESP_OK;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
-    MB_SLAVE_CHECK((slave_interface_ptr->setup != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface]->setup != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
-    error = slave_interface_ptr->setup(comm_info);
+    error = slave_interface_ptr[iface]->setup(comm_info);
     MB_SLAVE_CHECK((error == ESP_OK),
                     ESP_ERR_INVALID_STATE,
                     "Slave setup failure error=(0x%x).",
@@ -137,13 +137,13 @@ esp_err_t mbc_slave_setup(void* comm_info)
 /**
  * Start Modbus controller start function
  */
-esp_err_t mbc_slave_start(void)
+esp_err_t mbc_slave_start(mb_iface_type_t iface)
 {
     esp_err_t error = ESP_OK;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
-    MB_SLAVE_CHECK((slave_interface_ptr->start != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface]->start != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 #ifdef CONFIG_FMB_CONTROLLER_SLAVE_ID_SUPPORT
@@ -151,7 +151,7 @@ esp_err_t mbc_slave_start(void)
     eMBErrorCode status = eMBSetSlaveID(MB_SLAVE_ID_SHORT, TRUE, (UCHAR*)mb_slave_id, sizeof(mb_slave_id));
     MB_SLAVE_CHECK((status == MB_ENOERR), ESP_ERR_INVALID_STATE, "mb stack set slave ID failure.");
 #endif
-    error = slave_interface_ptr->start();
+    error = slave_interface_ptr[iface]->start();
     MB_SLAVE_CHECK((error == ESP_OK),
                     ESP_ERR_INVALID_STATE,
                     "Slave start failure error=(0x%x).",
@@ -162,31 +162,31 @@ esp_err_t mbc_slave_start(void)
 /**
  * Blocking function to get event on parameter group change for application task
  */
-mb_event_group_t mbc_slave_check_event(mb_event_group_t group)
+mb_event_group_t mbc_slave_check_event(mb_event_group_t group, mb_iface_type_t iface)
 {
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     MB_EVENT_NO_EVENTS,
                     "Slave interface is not correctly initialized.");
-    MB_SLAVE_CHECK((slave_interface_ptr->check_event != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface]->check_event != NULL),
                     MB_EVENT_NO_EVENTS,
                     "Slave interface is not correctly initialized.");
-    mb_event_group_t event = slave_interface_ptr->check_event(group);
+    mb_event_group_t event = slave_interface_ptr[iface]->check_event(group);
     return event;
 }
 
 /**
  * Function to get notification about parameter change from application task
  */
-esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout)
+esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout, mb_iface_type_t iface)
 {
     esp_err_t error = ESP_OK;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
-    MB_SLAVE_CHECK((slave_interface_ptr->get_param_info != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface]->get_param_info != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
-    error = slave_interface_ptr->get_param_info(reg_info, timeout);
+    error = slave_interface_ptr[iface]->get_param_info(reg_info, timeout);
     MB_SLAVE_CHECK((error == ESP_OK),
                     ESP_ERR_INVALID_STATE,
                     "Slave get parameter info failure error=(0x%x).",
@@ -197,23 +197,23 @@ esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout)
 /**
  * Function to set area descriptors for modbus parameters
  */
-esp_err_t mbc_slave_set_descriptor(mb_register_area_descriptor_t descr_data)
+esp_err_t mbc_slave_set_descriptor(mb_register_area_descriptor_t descr_data, mb_iface_type_t iface)
 {
     esp_err_t error = ESP_OK;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr->set_descriptor != NULL) {
-        error = slave_interface_ptr->set_descriptor(descr_data);
+    if (slave_interface_ptr[iface]->set_descriptor != NULL) {
+        error = slave_interface_ptr[iface]->set_descriptor(descr_data);
         MB_SLAVE_CHECK((error == ESP_OK),
                         ESP_ERR_INVALID_STATE,
                         "Slave set descriptor failure error=(0x%x).",
                         (int)error);
     } else {
-        mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+        mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface]->opts;
         // Check if the address is already in the descriptor list
-        mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(descr_data.type, descr_data.start_offset, 1);
+        mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(descr_data.type, descr_data.start_offset, 1, iface);
         MB_SLAVE_CHECK((it == NULL), ESP_ERR_INVALID_ARG, "mb incorrect descriptor or already defined.");
 
         mb_descr_entry_t* new_descr = (mb_descr_entry_t*) heap_caps_malloc(sizeof(mb_descr_entry_t),
@@ -238,10 +238,10 @@ static uint64_t mbc_slave_get_time_stamp(void)
 
 // Helper function to send parameter information to application task
 static esp_err_t mbc_slave_send_param_info(mb_event_group_t par_type, uint16_t mb_offset,
-                                    uint8_t* par_address, uint16_t par_size)
+                                    uint8_t* par_address, uint16_t par_size, mb_iface_type_t iface)
 {
-    MB_SLAVE_ASSERT(slave_interface_ptr != NULL);
-    mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+    MB_SLAVE_ASSERT(slave_interface_ptr[iface] != NULL);
+    mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface]->opts;
     esp_err_t error = ESP_FAIL;
     mb_param_info_t par_info;
     // Check if queue is not full the send parameter information
@@ -262,10 +262,10 @@ static esp_err_t mbc_slave_send_param_info(mb_event_group_t par_type, uint16_t m
 }
 
 // Helper function to send notification
-static esp_err_t mbc_slave_send_param_access_notification(mb_event_group_t event)
+static esp_err_t mbc_slave_send_param_access_notification(mb_event_group_t event, mb_iface_type_t iface)
 {
-    MB_SLAVE_ASSERT(slave_interface_ptr != NULL);
-    mb_slave_options_t* mbs_opts = &slave_interface_ptr->opts;
+    MB_SLAVE_ASSERT(slave_interface_ptr[iface] != NULL);
+    mb_slave_options_t* mbs_opts = &slave_interface_ptr[iface]->opts;
     esp_err_t err = ESP_FAIL;
     mb_event_group_t bits = (mb_event_group_t)xEventGroupSetBits(mbs_opts->mbs_event_group, (EventBits_t)event);
     if (bits & event) {
@@ -281,15 +281,15 @@ static esp_err_t mbc_slave_send_param_access_notification(mb_event_group_t event
  */
 
 // Callback function for reading of MB Input Registers
-eMBErrorCode mbc_reg_input_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n_regs)
+eMBErrorCode mbc_reg_input_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n_regs, mb_iface_type_t iface)
 {
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     MB_EILLSTATE, "Slave stack uninitialized.");
     MB_SLAVE_CHECK((reg_buffer != NULL),
                     MB_EINVAL, "Slave stack call failed.");
     eMBErrorCode status = MB_ENOERR;
     address--; // address of register is already +1
-    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_INPUT, address, n_regs);
+    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_INPUT, address, n_regs, iface);
     if (it != NULL) {
         uint16_t input_reg_start = (uint16_t)it->start_offset; // Get Modbus start address
         uint8_t* input_buffer = (uint8_t*)it->p_data; // Get instance address
@@ -306,10 +306,10 @@ eMBErrorCode mbc_reg_input_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n
             regs -= 1;
         }
         // Send access notification
-        (void)mbc_slave_send_param_access_notification(MB_EVENT_INPUT_REG_RD);
+        (void)mbc_slave_send_param_access_notification(MB_EVENT_INPUT_REG_RD, iface);
         // Send parameter info to application task
         (void)mbc_slave_send_param_info(MB_EVENT_INPUT_REG_RD, (uint16_t)address,
-                        (uint8_t*)buffer_start, (uint16_t)n_regs);
+                        (uint8_t*)buffer_start, (uint16_t)n_regs, iface);
     } else {
         status = MB_ENOREG;
     }
@@ -318,16 +318,16 @@ eMBErrorCode mbc_reg_input_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n
 
 // Callback function for reading of MB Holding Registers
 // Executed by stack when request to read/write holding registers is received
-eMBErrorCode mbc_reg_holding_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n_regs, eMBRegisterMode mode)
+eMBErrorCode mbc_reg_holding_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT n_regs, eMBRegisterMode mode, mb_iface_type_t iface)
 {
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     MB_EILLSTATE, "Slave stack uninitialized.");
     MB_SLAVE_CHECK((reg_buffer != NULL),
                     MB_EINVAL, "Slave stack call failed.");
     eMBErrorCode status = MB_ENOERR;
     uint16_t reg_index;
     address--; // address of register is already +1
-    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_HOLDING, address, n_regs);
+    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_HOLDING, address, n_regs, iface);
     if (it != NULL) {
         uint16_t reg_holding_start = (uint16_t)it->start_offset; // Get Modbus start address
         uint8_t* holding_buffer = (uint8_t*)it->p_data; // Get instance address
@@ -344,10 +344,10 @@ eMBErrorCode mbc_reg_holding_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT
                     regs -= 1;
                 };
                 // Send access notification
-                (void)mbc_slave_send_param_access_notification(MB_EVENT_HOLDING_REG_RD);
+                (void)mbc_slave_send_param_access_notification(MB_EVENT_HOLDING_REG_RD, iface);
                 // Send parameter info
                 (void)mbc_slave_send_param_info(MB_EVENT_HOLDING_REG_RD, (uint16_t)address,
-                                (uint8_t*)buffer_start, (uint16_t)n_regs);
+                                (uint8_t*)buffer_start, (uint16_t)n_regs, iface);
                 break;
             case MB_REG_WRITE:
                 while (regs > 0) {
@@ -357,10 +357,10 @@ eMBErrorCode mbc_reg_holding_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT
                     regs -= 1;
                 };
                 // Send access notification
-                (void)mbc_slave_send_param_access_notification(MB_EVENT_HOLDING_REG_WR);
+                (void)mbc_slave_send_param_access_notification(MB_EVENT_HOLDING_REG_WR, iface);
                 // Send parameter info
                 (void)mbc_slave_send_param_info(MB_EVENT_HOLDING_REG_WR, (uint16_t)address,
-                                (uint8_t*)buffer_start, (uint16_t)n_regs);
+                                (uint8_t*)buffer_start, (uint16_t)n_regs, iface);
                 break;
         }
     } else {
@@ -370,9 +370,9 @@ eMBErrorCode mbc_reg_holding_slave_cb(UCHAR * reg_buffer, USHORT address, USHORT
 }
 
 // Callback function for reading of MB Coils Registers
-eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_coils, eMBRegisterMode mode)
+eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_coils, eMBRegisterMode mode, mb_iface_type_t iface)
 {
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     MB_EILLSTATE, "Slave stack uninitialized.");
     MB_SLAVE_CHECK((reg_buffer != NULL),
                     MB_EINVAL, "Slave stack call failed.");
@@ -380,7 +380,7 @@ eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_
     uint16_t reg_index;
     uint16_t coils = n_coils;
     address--; // The address is already +1
-    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_COIL, address, n_coils);
+    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_COIL, address, n_coils, iface);
     if (it != NULL) {
         uint16_t reg_coils_start = (uint16_t)it->start_offset; // MB offset of coils
         uint8_t* reg_coils_buf = (uint8_t*)it->p_data;
@@ -395,9 +395,9 @@ eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_
                     coils--;
                 }
                 // Send an event to notify application task about event
-                (void)mbc_slave_send_param_access_notification(MB_EVENT_COILS_RD);
+                (void)mbc_slave_send_param_access_notification(MB_EVENT_COILS_RD, iface);
                 (void)mbc_slave_send_param_info(MB_EVENT_COILS_RD, (uint16_t)address,
-                                (uint8_t*)(coils_data_buf), (uint16_t)n_coils);
+                                (uint8_t*)(coils_data_buf), (uint16_t)n_coils, iface);
                 break;
             case MB_REG_WRITE:
                 while (coils > 0) {
@@ -408,9 +408,9 @@ eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_
                     coils--;
                 }
                 // Send an event to notify application task about event
-                (void)mbc_slave_send_param_access_notification(MB_EVENT_COILS_WR);
+                (void)mbc_slave_send_param_access_notification(MB_EVENT_COILS_WR, iface);
                 (void)mbc_slave_send_param_info(MB_EVENT_COILS_WR, (uint16_t)address,
-                                (uint8_t*)coils_data_buf, (uint16_t)n_coils);
+                                (uint8_t*)coils_data_buf, (uint16_t)n_coils, iface);
                 break;
         } // switch ( eMode )
     } else {
@@ -421,9 +421,9 @@ eMBErrorCode mbc_reg_coils_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_
 }
 
 // Callback function for reading of MB Discrete Input Registers
-eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_discrete)
+eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT n_discrete, mb_iface_type_t iface)
 {
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     MB_EILLSTATE, "Slave stack uninitialized.");
     MB_SLAVE_CHECK((reg_buffer != NULL),
                     MB_EINVAL, "Slave stack call failed.");
@@ -435,7 +435,7 @@ eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT
     uint8_t* discrete_input_buf;
     // It already plus one in modbus function method.
     address--;
-    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_DISCRETE, address, n_discrete);
+    mb_descr_entry_t* it = mbc_slave_find_reg_descriptor(MB_PARAM_DISCRETE, address, n_discrete, iface);
     if (it != NULL) {
         uint16_t reg_discrete_start = (uint16_t)it->start_offset; // MB offset of registers
         n_reg = (n_discrete >> 3) + 1;
@@ -454,9 +454,9 @@ eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT
         *reg_buffer = *reg_buffer << (8 - n_discrete);
         *reg_buffer = *reg_buffer >> (8 - n_discrete);
         // Send an event to notify application task about event
-        (void)mbc_slave_send_param_access_notification(MB_EVENT_DISCRETE_RD);
+        (void)mbc_slave_send_param_access_notification(MB_EVENT_DISCRETE_RD, iface);
         (void)mbc_slave_send_param_info(MB_EVENT_DISCRETE_RD, (uint16_t)address,
-                            (uint8_t*)temp_buf, (uint16_t)n_discrete);
+                            (uint8_t*)temp_buf, (uint16_t)n_discrete, iface);
     } else {
         status = MB_ENOREG;
     }
@@ -469,14 +469,14 @@ eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT
 eMBErrorCode eMBRegDiscreteCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
 {
     eMBErrorCode error = MB_ENOERR;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
     // Check if the callback is overridden in concrete port
-    if (slave_interface_ptr->slave_reg_cb_discrete) {
-        error = slave_interface_ptr->slave_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete);
+    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_discrete) {
+        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete);
     } else {
-        error = mbc_reg_discrete_slave_cb(pucRegBuffer, usAddress, usNDiscrete);
+        error = mbc_reg_discrete_slave_cb(pucRegBuffer, usAddress, usNDiscrete, MB_IFACE_TYPE_TCP);
     }
 
     return error;
@@ -486,30 +486,30 @@ eMBErrorCode eMBRegCoilsCB(UCHAR* pucRegBuffer, USHORT usAddress,
                             USHORT usNCoils, eMBRegisterMode eMode)
 {
     eMBErrorCode error = MB_ENOERR;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr->slave_reg_cb_coils) {
-        error = slave_interface_ptr->slave_reg_cb_coils(pucRegBuffer, usAddress, usNCoils, eMode);
+    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_coils) {
+        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_coils(pucRegBuffer, usAddress, usNCoils, eMode);
     } else {
-        error = mbc_reg_coils_slave_cb(pucRegBuffer, usAddress, usNCoils, eMode);
+        error = mbc_reg_coils_slave_cb(pucRegBuffer, usAddress, usNCoils, eMode, MB_IFACE_TYPE_TCP);
     }
     return error;
 }
 
 eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
-                                USHORT usNRegs, eMBRegisterMode eMode)
+                                USHORT usNRegs, eMBRegisterMode eMode, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr->slave_reg_cb_holding) {
-        error = slave_interface_ptr->slave_reg_cb_holding(pucRegBuffer, usAddress, usNRegs, eMode);
+    if (slave_interface_ptr[iface]->slave_reg_cb_holding) {
+        error = slave_interface_ptr[iface]->slave_reg_cb_holding(pucRegBuffer, usAddress, usNRegs, eMode, iface);
     } else {
-        error = mbc_reg_holding_slave_cb(pucRegBuffer, usAddress, usNRegs, eMode);
+        error = mbc_reg_holding_slave_cb(pucRegBuffer, usAddress, usNRegs, eMode, iface);
     }
     return error;
 }
@@ -517,14 +517,14 @@ eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
 eMBErrorCode eMBRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs)
 {
     eMBErrorCode error = ESP_ERR_INVALID_STATE;
-    MB_SLAVE_CHECK((slave_interface_ptr != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr->slave_reg_cb_input) {
-        error = slave_interface_ptr->slave_reg_cb_input(pucRegBuffer, usAddress, usNRegs);
+    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_input) {
+        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_input(pucRegBuffer, usAddress, usNRegs);
     } else {
-        error = mbc_reg_input_slave_cb(pucRegBuffer, usAddress, usNRegs);
+        error = mbc_reg_input_slave_cb(pucRegBuffer, usAddress, usNRegs, MB_IFACE_TYPE_TCP);
     }
     return error;
 }

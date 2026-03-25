@@ -214,7 +214,7 @@ eMBErrorCode    eMBMasterDisable( void );
  *   returns eMBErrorCode::MB_EILLSTATE. Otherwise it returns
  *   eMBErrorCode::MB_ENOERR.
  */
-eMBErrorCode    eMBMasterPoll( void );
+eMBErrorCode    eMBMasterPoll( mb_iface_type_t iface );
 
 /*! \ingroup modbus
  * \brief Registers a callback handler for a given function code.

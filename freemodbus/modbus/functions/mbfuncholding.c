@@ -82,7 +82,7 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 #if MB_FUNC_WRITE_HOLDING_ENABLED
 
 eMBException
-eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     eMBException    eStatus = MB_EX_NONE;
@@ -96,7 +96,7 @@ eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 
         /* Make callback to update the value. */
         eRegStatus = eMBRegHoldingCB( &pucFrame[MB_PDU_FUNC_WRITE_VALUE_OFF],
-                                      usRegAddress, 1, MB_REG_WRITE );
+                                      usRegAddress, 1, MB_REG_WRITE, iface );
 
         /* If an error occured convert it into a Modbus exception. */
         if( eRegStatus != MB_ENOERR )
@@ -115,7 +115,7 @@ eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
 eMBException
-eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usRegCount;
@@ -142,7 +142,7 @@ eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
             /* Make callback to update the register values. */
             eRegStatus =
                 eMBRegHoldingCB( &pucFrame[MB_PDU_FUNC_WRITE_MUL_VALUES_OFF],
-                                 usRegAddress, usRegCount, MB_REG_WRITE );
+                                 usRegAddress, usRegCount, MB_REG_WRITE, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -175,7 +175,7 @@ eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
 
 eMBException
-eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usRegCount;
@@ -211,7 +211,7 @@ eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
             *usLen += 1;
 
             /* Make callback to fill the buffer. */
-            eRegStatus = eMBRegHoldingCB( pucFrameCur, usRegAddress, usRegCount, MB_REG_READ );
+            eRegStatus = eMBRegHoldingCB( pucFrameCur, usRegAddress, usRegCount, MB_REG_READ, iface );
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
             {
@@ -240,7 +240,7 @@ eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 #if MB_FUNC_READWRITE_HOLDING_ENABLED > 0
 
 eMBException
-eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegReadAddress;
     USHORT          usRegReadCount;
@@ -276,7 +276,7 @@ eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
         {
             /* Make callback to update the register values. */
             eRegStatus = eMBRegHoldingCB( &pucFrame[MB_PDU_FUNC_READWRITE_WRITE_VALUES_OFF],
-                                          usRegWriteAddress, usRegWriteCount, MB_REG_WRITE );
+                                          usRegWriteAddress, usRegWriteCount, MB_REG_WRITE, iface );
 
             if( eRegStatus == MB_ENOERR )
             {
@@ -294,7 +294,7 @@ eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen )
 
                 /* Make the read callback. */
                 eRegStatus =
-                    eMBRegHoldingCB( pucFrameCur, usRegReadAddress, usRegReadCount, MB_REG_READ );
+                    eMBRegHoldingCB( pucFrameCur, usRegReadAddress, usRegReadCount, MB_REG_READ, iface );
                 if( eRegStatus == MB_ENOERR )
                 {
                     *usLen += 2 * usRegReadCount;

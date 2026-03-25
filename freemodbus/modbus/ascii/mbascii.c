@@ -135,7 +135,7 @@ eMBASCIIStart( void )
     EXIT_CRITICAL_SECTION(  );
 
     /* No special startup required for ASCII. */
-    ( void )xMBPortEventPost( EV_READY );
+    ( void )xMBPortEventPost( EV_READY, MB_IFACE_TYPE_RTU );
 }
 
 void
@@ -306,7 +306,7 @@ xMBASCIIReceiveFSM( void )
 
             /* Notify the caller of eMBASCIIReceive that a new frame
              * was received. */
-            (void)xMBPortEventPost( EV_FRAME_RECEIVED );
+            (void)xMBPortEventPost( EV_FRAME_RECEIVED, MB_IFACE_TYPE_TCP );
         }
         else if( ucByte == ':' )
         {
@@ -402,7 +402,7 @@ xMBASCIITransmitFSM( void )
          * been sent. */
     case STATE_TX_NOTIFY:
         eSndState = STATE_TX_IDLE;
-        xMBPortEventPost( EV_FRAME_TRANSMIT );
+        xMBPortEventPost( EV_FRAME_TRANSMIT, MB_IFACE_TYPE_TCP );
         xNeedPoll = FALSE;
         break;
 

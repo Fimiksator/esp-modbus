@@ -38,11 +38,13 @@
 #ifndef _MB_FUNC_H
 #define _MB_FUNC_H
 
+#include "mb.h"
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif
 #if MB_FUNC_OTHER_REP_SLAVEID_BUF > 0
-    eMBException eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
+    eMBException eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen, uint8_t );
 #endif
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
@@ -50,15 +52,15 @@ eMBException    eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
-eMBException    eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException    eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 #endif
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
-eMBException    eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException    eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface);
 #endif
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
-eMBException    eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException    eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 #endif
 
 #if MB_FUNC_READ_COILS_ENABLED > 0
@@ -78,7 +80,7 @@ eMBException    eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 #if MB_FUNC_READWRITE_HOLDING_ENABLED > 0
-eMBException    eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException    eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 #endif
 
 #ifdef __cplusplus

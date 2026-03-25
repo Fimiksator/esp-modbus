@@ -40,7 +40,7 @@ static void modbus_tcp_slave_task(void *pvParameters)
                                                 portMAX_DELAY);
         // Check if stack started then poll for data
         if (status & MB_EVENT_STACK_STARTED) {
-            (void)eMBPoll(); // allow stack to process data
+            (void)eMBPoll(MB_IFACE_TYPE_TCP); // allow stack to process data
         }
     }
 }

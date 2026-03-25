@@ -38,11 +38,11 @@ static void modbus_slave_task(void *pvParameters)
                                                 portMAX_DELAY);
         // Check if stack started then poll for data
         if (status & MB_EVENT_STACK_STARTED) {
-            (void)eMBPoll(); // allow stack to process data
+            (void)eMBPoll(MB_IFACE_TYPE_RTU); // allow stack to process data
             // Send response buffer
             BOOL xSentState = xMBPortSerialTxPoll();
             if (xSentState) {
-                (void)xMBPortEventPost( EV_FRAME_SENT );
+                (void)xMBPortEventPost( EV_FRAME_SENT, MB_IFACE_TYPE_RTU );
             }
         }
     }

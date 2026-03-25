@@ -139,6 +139,8 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
+    printf(  "--------------------------------------- eMBInit");
+
     /* check preconditions */
     if( ( ucSlaveAddress == MB_ADDRESS_BROADCAST ) ||
         ( ucSlaveAddress < MB_ADDRESS_MIN ) || ( ucSlaveAddress > MB_ADDRESS_MAX ) )
@@ -185,7 +187,7 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
 
         if( eStatus == MB_ENOERR )
         {
-            if( !xMBPortEventInit(  ) )
+            if( !xMBPortEventInit( MB_IFACE_TYPE_RTU ) )
             {
                 /* port dependent event module initalization failed. */
                 eStatus = MB_EPORTERR;
@@ -215,7 +217,7 @@ eMBTCPInit( UCHAR ucSlaveUid, USHORT ucTCPPort )
     {
         eMBState = STATE_DISABLED;
     }
-    else if( !xMBPortEventInit(  ) )
+    else if( !xMBPortEventInit( MB_IFACE_TYPE_TCP ) )
     {
         /* Port dependent event module initalization failed. */
         eStatus = MB_EPORTERR;
@@ -342,7 +344,7 @@ eMBDisable( void )
 }
 
 eMBErrorCode
-eMBPoll( void )
+eMBPoll( mb_iface_type_t iface )
 {
     static UCHAR    *ucMBFrame = NULL;
     static UCHAR    ucRcvAddress;
@@ -362,7 +364,7 @@ eMBPoll( void )
 
     /* Check if there is a event available. If not return control to caller.
      * Otherwise we will handle the event. */
-    if( xMBPortEventGet( &eEvent ) == TRUE )
+    if( xMBPortEventGet( &eEvent, iface ) == TRUE )
     {
         switch ( eEvent )
         {
@@ -379,7 +381,7 @@ eMBPoll( void )
                 if( ( ucRcvAddress == ucMBAddress ) || ( ucRcvAddress == MB_ADDRESS_BROADCAST ) 
                                             || ( ucRcvAddress == MB_TCP_PSEUDO_ADDRESS ) )
                 {
-                    ( void )xMBPortEventPost( EV_EXECUTE );
+                    ( void )xMBPortEventPost( EV_EXECUTE, iface);
                     ESP_LOG_BUFFER_HEX_LEVEL(MB_PORT_TAG, &ucMBFrame[MB_PDU_FUNC_OFF], usLength, ESP_LOG_DEBUG);
                 }
             }
@@ -401,7 +403,7 @@ eMBPoll( void )
                 }
                 if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode )
                 {
-                    eException = xFuncHandlers[i].pxHandler( ucMBFrame, &usLength );
+                    eException = xFuncHandlers[i].pxHandler( ucMBFrame, &usLength, iface );
                     break;
                 }
             }

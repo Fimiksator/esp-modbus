@@ -129,6 +129,13 @@ typedef enum
     MB_ETIMEDOUT                /*!< timeout error occurred. */
 } eMBErrorCode;
 
+typedef enum {
+    MB_IFACE_TYPE_RTU = 0,
+    MB_IFACE_TYPE_TCP,
+    MB_IFACE_CNT
+} mb_iface_type_t;
+
+
 /* ----------------------- Function prototypes ------------------------------*/
 /*! \ingroup modbus
  * \brief Initialize the Modbus protocol stack.
@@ -226,7 +233,7 @@ eMBErrorCode    eMBDisable( void );
  *   returns eMBErrorCode::MB_EILLSTATE. Otherwise it returns
  *   eMBErrorCode::MB_ENOERR.
  */
-eMBErrorCode    eMBPoll( void );
+eMBErrorCode    eMBPoll( mb_iface_type_t iface );
 
 /*! \ingroup modbus
  * \brief Configure the slave id of the device.
@@ -318,7 +325,7 @@ eMBErrorCode    eMBRegisterCB( UCHAR ucFunctionCode,
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
 eMBErrorCode    eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                               USHORT usNRegs );
+                               USHORT usNRegs);
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Holding Register</em> value is
@@ -353,7 +360,7 @@ eMBErrorCode    eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
 eMBErrorCode    eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                 USHORT usNRegs, eMBRegisterMode eMode );
+                                 USHORT usNRegs, eMBRegisterMode eMode, mb_iface_type_t iface );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Coil Register</em> value is
@@ -388,7 +395,7 @@ eMBErrorCode    eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
 eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                               USHORT usNCoils, eMBRegisterMode eMode );
+                               USHORT usNCoils, eMBRegisterMode eMode);
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Input Discrete Register</em> value is
@@ -417,7 +424,7 @@ eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
 eMBErrorCode    eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                  USHORT usNDiscrete );
+                                  USHORT usNDiscrete);
 
 #ifdef __cplusplus
 PR_END_EXTERN_C

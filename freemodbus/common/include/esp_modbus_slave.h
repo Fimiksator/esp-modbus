@@ -14,6 +14,7 @@
 #include "freertos/FreeRTOS.h"      // for task creation and queues access
 #include "freertos/event_groups.h"  // for event groups
 #include "esp_modbus_common.h"      // for common types
+#include "mb.h"      // for common types
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,7 +77,7 @@ esp_err_t mbc_slave_init(mb_port_type_t port_type, void** handler);
  *
  * @param[in] handler - pointer to slave interface data structure
  */
-void mbc_slave_init_iface(void* handler);
+void mbc_slave_init_iface(void* handler, mb_iface_type_t iface);
 
 /**
  * @brief Destroy Modbus controller and stack
@@ -85,7 +86,7 @@ void mbc_slave_init_iface(void* handler);
  *     - ESP_OK   Success
  *     - ESP_ERR_INVALID_STATE Parameter error
  */
-esp_err_t mbc_slave_destroy(void);
+esp_err_t mbc_slave_destroy(mb_iface_type_t iface);
 
 /**
  * @brief Start Modbus communication stack
@@ -94,7 +95,7 @@ esp_err_t mbc_slave_destroy(void);
  *     - ESP_OK   Success
  *     - ESP_ERR_INVALID_ARG Modbus stack start error
  */
-esp_err_t mbc_slave_start(void);
+esp_err_t mbc_slave_start(mb_iface_type_t iface);
 
 /**
  * @brief Set Modbus communication parameters for the controller
@@ -105,7 +106,7 @@ esp_err_t mbc_slave_start(void);
  *     - ESP_OK Success
  *     - ESP_ERR_INVALID_ARG Incorrect parameter data
  */
-esp_err_t mbc_slave_setup(void* comm_info);
+esp_err_t mbc_slave_setup(void* comm_info, mb_iface_type_t iface);
 
 /**
  * @brief Wait for specific event on parameter change.
@@ -115,7 +116,7 @@ esp_err_t mbc_slave_setup(void* comm_info);
  * @return
  *     - mb_event_group_t event bits triggered
  */
-mb_event_group_t mbc_slave_check_event(mb_event_group_t group);
+mb_event_group_t mbc_slave_check_event(mb_event_group_t group, mb_iface_type_t iface);
 
 /**
  * @brief Get parameter information
@@ -128,7 +129,7 @@ mb_event_group_t mbc_slave_check_event(mb_event_group_t group);
  *     - ESP_ERR_TIMEOUT Can not get data from parameter queue
  *                       or queue overflow
  */
-esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout);
+esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout, mb_iface_type_t iface);
 
 /**
  * @brief Set Modbus area descriptor
@@ -139,7 +140,7 @@ esp_err_t mbc_slave_get_param_info(mb_param_info_t* reg_info, uint32_t timeout);
  *     - ESP_OK: The appropriate descriptor is set
  *     - ESP_ERR_INVALID_ARG: The argument is incorrect
  */
-esp_err_t mbc_slave_set_descriptor(mb_register_area_descriptor_t descr_data);
+esp_err_t mbc_slave_set_descriptor(mb_register_area_descriptor_t descr_data, mb_iface_type_t iface);
 
 #ifdef __cplusplus
 }

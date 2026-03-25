@@ -47,40 +47,40 @@
 #include "mbconfig.h"
 #include "port_serial_slave.h"
 /* ----------------------- Variables ----------------------------------------*/
-static QueueHandle_t xQueueHdl;
+static QueueHandle_t xQueueHdl[MB_IFACE_CNT];
 
 /* ----------------------- Start implementation -----------------------------*/
 BOOL
-xMBPortEventInit( void )
+xMBPortEventInit( uint8_t iface )
 {
     BOOL bStatus = FALSE;
-    if((xQueueHdl = xQueueCreate(MB_EVENT_QUEUE_SIZE, sizeof(eMBEventType))) != NULL)
+    if((xQueueHdl[iface] = xQueueCreate(MB_EVENT_QUEUE_SIZE, sizeof(eMBEventType))) != NULL)
     {
-        vQueueAddToRegistry(xQueueHdl, "MbPortEventQueue");
+        vQueueAddToRegistry(xQueueHdl[iface], "MbPortEventQueue");
         bStatus = TRUE;
     }
     return bStatus;
 }
 
 void
-vMBPortEventClose( void )
+vMBPortEventClose( uint8_t iface )
 {
-    if(xQueueHdl != NULL)
+    if(xQueueHdl[iface] != NULL)
     {
-        vQueueDelete(xQueueHdl);
-        xQueueHdl = NULL;
+        vQueueDelete(xQueueHdl[iface]);
+        xQueueHdl[iface] = NULL;
     }
 }
 
 BOOL MB_PORT_ISR_ATTR
-xMBPortEventPost( eMBEventType eEvent )
+xMBPortEventPost( eMBEventType eEvent, uint8_t iface )
 {
     BaseType_t xStatus, xHigherPriorityTaskWoken = pdFALSE;
-    assert(xQueueHdl != NULL);
+    assert(xQueueHdl[iface] != NULL);
 
     if( (BOOL)xPortInIsrContext() == TRUE )
     {
-        xStatus = xQueueSendFromISR(xQueueHdl, (const void*)&eEvent, &xHigherPriorityTaskWoken);
+        xStatus = xQueueSendFromISR(xQueueHdl[iface], (const void*)&eEvent, &xHigherPriorityTaskWoken);
         if ( xHigherPriorityTaskWoken )
         {
             portYIELD_FROM_ISR();
@@ -92,30 +92,30 @@ xMBPortEventPost( eMBEventType eEvent )
     }
     else
     {
-        xStatus = xQueueSend(xQueueHdl, (const void*)&eEvent, MB_EVENT_QUEUE_TIMEOUT);
+        xStatus = xQueueSend(xQueueHdl[iface], (const void*)&eEvent, MB_EVENT_QUEUE_TIMEOUT);
         MB_PORT_CHECK((xStatus == pdTRUE), FALSE, "%s: Post message failure.", __func__);
     }
     return TRUE;
 }
 
 BOOL
-xMBPortEventGet(eMBEventType * peEvent)
+xMBPortEventGet(eMBEventType * peEvent, uint8_t iface)
 {
-    assert(xQueueHdl != NULL);
+    assert(xQueueHdl[iface] != NULL);
     BOOL xEventHappened = FALSE;
 
-    if (xQueueReceive(xQueueHdl, peEvent, portMAX_DELAY) == pdTRUE) {
+    if (xQueueReceive(xQueueHdl[iface], peEvent, portMAX_DELAY) == pdTRUE) {
         xEventHappened = TRUE;
     }
     return xEventHappened;
 }
 
 QueueHandle_t
-xMBPortEventGetHandle(void)
+xMBPortEventGetHandle(uint8_t iface)
 {
-    if(xQueueHdl != NULL)
+    if(xQueueHdl[iface] != NULL)
     {
-        return xQueueHdl;
+        return xQueueHdl[iface];
     }
     return NULL;
 }

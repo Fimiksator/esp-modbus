@@ -612,7 +612,7 @@ static void vMBTCPPortServerTask(void *pvParameters)
                                 xConfig.pxCurClientInfo = pxClientInfo;
 
                                 // Complete frame received, inform state machine to process frame
-                                xMBPortEventPost(EV_FRAME_RECEIVED);
+                                xMBPortEventPost(EV_FRAME_RECEIVED, MB_IFACE_TYPE_TCP);
 
                                 ESP_LOGD(TAG, "Socket (#%d)(%s), get packet TID=0x%X, %d bytes.",
                                                                     (int)pxClientInfo->xSockId, pxClientInfo->pcIpAddr,

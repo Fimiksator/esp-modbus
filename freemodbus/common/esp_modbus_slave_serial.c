@@ -15,6 +15,9 @@
  */
 esp_err_t mbc_slave_init(mb_port_type_t port_type, void** handler)
 {
+    printf("-----------------------------");
+    printf("-------------INSIDE-----------");
+    printf("-----------------------------");
     void* port_handler = NULL;
     esp_err_t error = ESP_ERR_NOT_SUPPORTED;
     switch(port_type)
@@ -27,7 +30,7 @@ esp_err_t mbc_slave_init(mb_port_type_t port_type, void** handler)
             return ESP_ERR_NOT_SUPPORTED;
     }
     if ((port_handler != NULL) && (error == ESP_OK)) {
-        mbc_slave_init_iface(port_handler);
+        mbc_slave_init_iface(port_handler, MB_IFACE_TYPE_RTU);
         *handler = port_handler;
     }
     return error;

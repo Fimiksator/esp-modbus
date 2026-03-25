@@ -220,7 +220,7 @@ eMBErrorCode eMBMasterRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
     error = master_interface_ptr->master_reg_cb_holding(pucRegBuffer, usAddress,
-                                                        usNRegs, eMode);
+                                                        usNRegs, eMode, MB_IFACE_TYPE_RTU);
     return error;
 }
 

@@ -342,7 +342,7 @@ eMBMasterDisable( void )
 }
 
 eMBErrorCode
-eMBMasterPoll( void )
+eMBMasterPoll( mb_iface_type_t iface )
 {
     int                     i;
     int                     j;
@@ -448,10 +448,10 @@ eMBMasterPoll( void )
                                     for(j = 1; j <= MB_MASTER_TOTAL_SLAVE_NUM; j++)
                                     {
                                         vMBMasterSetDestAddress(j);
-                                        eException = xMasterFuncHandlers[i].pxHandler(pucMBRecvFrame, &usLength);
+                                        eException = xMasterFuncHandlers[i].pxHandler(pucMBRecvFrame, &usLength, iface);
                                     }
                                 } else {
-                                    eException = xMasterFuncHandlers[i].pxHandler(pucMBRecvFrame, &usRecvLength);
+                                    eException = xMasterFuncHandlers[i].pxHandler(pucMBRecvFrame, &usRecvLength, iface);
                                 }
                                 vMBMasterSetCBRunInMasterMode( FALSE );
                                 break;

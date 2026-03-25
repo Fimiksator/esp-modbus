@@ -50,7 +50,7 @@ static void modbus_master_task(void *pvParameters)
                                                 portMAX_DELAY);
         // Check if stack started then poll for data
         if (status & MB_EVENT_STACK_STARTED) {
-            (void)eMBMasterPoll(); // Allow stack to process data
+            (void)eMBMasterPoll( MB_IFACE_TYPE_RTU); // Allow stack to process data
             // Send response buffer if ready to be sent
             BOOL xSentState = xMBMasterPortSerialTxPoll();
             if (xSentState) {

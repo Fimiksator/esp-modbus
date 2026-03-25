@@ -10,6 +10,7 @@
 #include <inttypes.h>                       // needs to be included for default system types (such as PRIxx)
 #include "driver/uart.h"                    // for UART types
 #include "sdkconfig.h"
+#include "../../modbus/include/mb.h"
 
 #if CONFIG_FMB_EXT_TYPE_SUPPORT
 #include "mb_endianness_utils.h"

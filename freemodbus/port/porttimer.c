@@ -46,7 +46,7 @@
 
 static const char *TAG = "MBS_TIMER";
 
-static xTimerContext_t* pxTimerContext = NULL;
+static xTimerContext_t* pxTimerContext[MB_IFACE_CNT] = {NULL};
 
 /* ----------------------- Start implementation -----------------------------*/
 static void IRAM_ATTR vTimerAlarmCBHandler(void *param)

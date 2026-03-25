@@ -116,11 +116,11 @@ typedef enum
 } eMBParity;
 
 /* ----------------------- Supporting functions -----------------------------*/
-BOOL            xMBPortEventInit( void );
+BOOL            xMBPortEventInit( uint8_t iface );
 
-BOOL            xMBPortEventPost( eMBEventType eEvent );
+BOOL            xMBPortEventPost( eMBEventType eEvent, uint8_t iface );
 
-BOOL            xMBPortEventGet(  /*@out@ */ eMBEventType * eEvent );
+BOOL            xMBPortEventGet(  /*@out@ */ eMBEventType * eEvent, uint8_t iface );
 
 #if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
 BOOL            xMBMasterPortEventInit( void );
