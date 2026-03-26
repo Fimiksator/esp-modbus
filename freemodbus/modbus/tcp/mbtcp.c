@@ -113,7 +113,6 @@ eMBTCPReceive( UCHAR * pucRcvAddress, UCHAR ** ppucFrame, USHORT * pusLength )
     USHORT          usLength;
     USHORT          usPID;
 
-    ESP_LOGI( MB_PORT_TAG, "eMBTCPReceive");
     if( xMBTCPPortGetRequest( &pucMBTCPFrame, &usLength ) != FALSE )
     {
         usPID = pucMBTCPFrame[MB_TCP_PID] << 8U;

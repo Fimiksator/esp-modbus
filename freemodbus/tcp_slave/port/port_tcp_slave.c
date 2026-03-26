@@ -561,15 +561,12 @@ static void vMBTCPPortServerTask(void *pvParameters)
             // Handle data request from client
             if (xErr > 0) {
 
-                ESP_LOGI(TAG, "Handle data request from client");
-
                 // Handling client connection requests
                 for (i = 0; i < MB_TCP_PORT_MAX_CONN; i++) {
                     MbClientInfo_t* pxClientInfo = xConfig.pxMbClientInfo[i];
                     if ((pxClientInfo != NULL) && (pxClientInfo->xSockId > 0)) {
                         if (FD_ISSET(pxClientInfo->xSockId, &xReadSet)) {
                             // Other sockets are ready to be read
-                            ESP_LOGI(TAG, "xMBTCPPortRxPoll");
                             xErr = xMBTCPPortRxPoll(pxClientInfo, MB_TCP_READ_TIMEOUT_MS);
                             // If an invalid data received from socket or connection fail
                             // or if timeout then drop connection and restart
@@ -668,7 +665,6 @@ static void vMBTCPPortServerTask(void *pvParameters)
 void
 vMBTCPPortClose( )
 {
-    ESP_LOGI(TAG, "vMBTCPPortClose");
     // Try to exit the task gracefully, so select could release its internal callbacks
     // that were allocated on the stack of the task we're going to delete
     xShutdownSema = xSemaphoreCreateBinary();
@@ -704,7 +700,6 @@ vMBTCPPortDisable( void )
 BOOL
 xMBTCPPortGetRequest( UCHAR ** ppucMBTCPFrame, USHORT * usTCPLength )
 {
-    ESP_LOGI(TAG, "xMBTCPPortGetRequest");
     BOOL xRet = FALSE;
     if (xConfig.pxCurClientInfo) {
         *ppucMBTCPFrame = &xConfig.pxCurClientInfo->pucTCPBuf[0];

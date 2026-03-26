@@ -66,7 +66,7 @@
 
 /* ----------------------- Static variables ---------------------------------*/
 
-static UCHAR    ucMBAddress;
+static UCHAR    ucMBAddress[MB_IFACE_CNT];
 static eMBMode  eMBCurrentMode[MB_IFACE_CNT];
 
 volatile UCHAR ucMbSlaveBuf[MB_SERIAL_BUF_SIZE];
@@ -149,7 +149,7 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
     }
     else
     {
-        ucMBAddress = ucSlaveAddress;
+        ucMBAddress[MB_IFACE_TYPE_RTU] = ucSlaveAddress;
 
         switch ( eMode )
         {
@@ -229,7 +229,7 @@ eMBTCPInit( UCHAR ucSlaveUid, USHORT ucTCPPort )
         peMBFrameReceiveCur[MB_IFACE_TYPE_TCP] = eMBTCPReceive;
         peMBFrameSendCur[MB_IFACE_TYPE_TCP] = eMBTCPSend;
         pvMBFrameCloseCur[MB_IFACE_TYPE_TCP] = MB_PORT_HAS_CLOSE ? vMBTCPPortClose : NULL;
-        ucMBAddress = ucSlaveUid;
+        ucMBAddress[MB_IFACE_TYPE_TCP] = ucSlaveUid;
         eMBCurrentMode[MB_IFACE_TYPE_TCP] = MB_TCP;
         eMbState[MB_IFACE_TYPE_TCP] = STATE_DISABLED;
     }
@@ -378,7 +378,7 @@ eMBPoll( mb_iface_type_t iface )
             if( eStatus == MB_ENOERR )
             {
                 /* Check if the frame is for us. If not ignore the frame. */
-                if( ( ucRcvAddress == ucMBAddress ) || ( ucRcvAddress == MB_ADDRESS_BROADCAST ) 
+                if( ( ucRcvAddress == ucMBAddress[iface] ) || ( ucRcvAddress == MB_ADDRESS_BROADCAST ) 
                                             || ( ucRcvAddress == MB_TCP_PSEUDO_ADDRESS ) )
                 {
                     ( void )xMBPortEventPost( EV_EXECUTE, iface);
@@ -423,7 +423,7 @@ eMBPoll( mb_iface_type_t iface )
                 {
                     vMBPortTimersDelay( MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS );
                 }
-                eStatus = peMBFrameSendCur[iface]( ucMBAddress, ucMBFrame, usLength );
+                eStatus = peMBFrameSendCur[iface]( ucMBAddress[iface], ucMBFrame, usLength );
             }
             break;
 
