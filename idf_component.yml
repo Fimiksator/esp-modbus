@@ -1,4 +1,4 @@
-version: "1.0.19"
+version: "1.0.20"
 description: ESP-MODBUS is the official Modbus library for Espressif SoCs.
 url: https://github.com/Fimiksator/esp-modbus
 dependencies:
