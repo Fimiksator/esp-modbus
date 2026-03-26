@@ -65,7 +65,7 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 #if MB_FUNC_READ_INPUT_ENABLED
 
 eMBException
-eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usRegCount;
@@ -102,7 +102,7 @@ eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen )
             *usLen += 1;
 
             eRegStatus =
-                eMBRegInputCB( pucFrameCur, usRegAddress, usRegCount );
+                eMBRegInputCB( pucFrameCur, usRegAddress, usRegCount, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )

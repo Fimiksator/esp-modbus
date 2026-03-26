@@ -74,7 +74,7 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 #if MB_FUNC_READ_COILS_ENABLED
 
 eMBException
-eMBFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReadCoils( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usCoilCount;
@@ -122,7 +122,7 @@ eMBFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
 
             eRegStatus =
                 eMBRegCoilsCB( pucFrameCur, usRegAddress, usCoilCount,
-                               MB_REG_READ );
+                               MB_REG_READ, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -153,7 +153,7 @@ eMBFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
 
 #if MB_FUNC_WRITE_COIL_ENABLED > 0
 eMBException
-eMBFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     UCHAR           ucBuf[2];
@@ -181,7 +181,7 @@ eMBFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
                 ucBuf[0] = 0;
             }
             eRegStatus =
-                eMBRegCoilsCB( &ucBuf[0], usRegAddress, 1, MB_REG_WRITE );
+                eMBRegCoilsCB( &ucBuf[0], usRegAddress, 1, MB_REG_WRITE, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -207,7 +207,7 @@ eMBFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
 
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
 eMBException
-eMBFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usCoilCnt;
@@ -244,7 +244,7 @@ eMBFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen )
         {
             eRegStatus =
                 eMBRegCoilsCB( &pucFrame[MB_PDU_FUNC_WRITE_MUL_VALUES_OFF],
-                               usRegAddress, usCoilCnt, MB_REG_WRITE );
+                               usRegAddress, usCoilCnt, MB_REG_WRITE, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )

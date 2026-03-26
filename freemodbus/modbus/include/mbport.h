@@ -146,7 +146,8 @@ uint64_t        xMBMasterPortGetTransactionId( void );
 BOOL            xMBPortSerialInit( UCHAR ucPort, ULONG ulBaudRate,
                                    UCHAR ucDataBits, eMBParity eParity );
 
-void            vMBPortClose( void );
+void            vMBPortClose( uint8_t iface );
+void            vMBPortEventClose( uint8_t iface );
 
 void            xMBPortSerialClose( void );
 

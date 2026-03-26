@@ -75,7 +75,6 @@
 #define MB_SLAVE_FMT(fmt)               "Slave #%d, Socket(#%d)(%s)"fmt
 
 /* ----------------------- Types & Prototypes --------------------------------*/
-void vMBPortEventClose(void);
 
 /* ----------------------- Static variables ---------------------------------*/
 static const char *TAG = "MB_TCP_MASTER_PORT";

@@ -65,7 +65,6 @@
 #define MB_TCP_NET_LISTEN_BACKLOG       ( SOMAXCONN )
 
 /* ----------------------- Prototypes ---------------------------------------*/
-void vMBPortEventClose( void );
 
 /* ----------------------- Static variables ---------------------------------*/
 static const char *TAG = "MB_TCP_SLAVE_PORT";
@@ -687,7 +686,7 @@ vMBTCPPortClose( )
         vSemaphoreDelete(xShutdownSema);
         xShutdownSema = NULL;
     }
-    vMBPortEventClose();
+    vMBPortEventClose(MB_IFACE_TYPE_TCP);
     ESP_LOGD(TAG,"Port is closed.");
 }
 

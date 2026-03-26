@@ -466,34 +466,34 @@ eMBErrorCode mbc_reg_discrete_slave_cb(UCHAR* reg_buffer, USHORT address, USHORT
 /**
  * Below are the stack callback functions to read/write registers
  */
-eMBErrorCode eMBRegDiscreteCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
+eMBErrorCode eMBRegDiscreteCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
-    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
     // Check if the callback is overridden in concrete port
-    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_discrete) {
-        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete);
+    if (slave_interface_ptr[iface]->slave_reg_cb_discrete) {
+        error = slave_interface_ptr[iface]->slave_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete, iface);
     } else {
-        error = mbc_reg_discrete_slave_cb(pucRegBuffer, usAddress, usNDiscrete, MB_IFACE_TYPE_TCP);
+        error = mbc_reg_discrete_slave_cb(pucRegBuffer, usAddress, usNDiscrete, iface);
     }
 
     return error;
 }
 
 eMBErrorCode eMBRegCoilsCB(UCHAR* pucRegBuffer, USHORT usAddress,
-                            USHORT usNCoils, eMBRegisterMode eMode)
+                            USHORT usNCoils, eMBRegisterMode eMode, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
-    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_coils) {
-        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_coils(pucRegBuffer, usAddress, usNCoils, eMode);
+    if (slave_interface_ptr[iface]->slave_reg_cb_coils) {
+        error = slave_interface_ptr[iface]->slave_reg_cb_coils(pucRegBuffer, usAddress, usNCoils, eMode, iface);
     } else {
-        error = mbc_reg_coils_slave_cb(pucRegBuffer, usAddress, usNCoils, eMode, MB_IFACE_TYPE_TCP);
+        error = mbc_reg_coils_slave_cb(pucRegBuffer, usAddress, usNCoils, eMode, iface);
     }
     return error;
 }
@@ -514,17 +514,17 @@ eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
     return error;
 }
 
-eMBErrorCode eMBRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs)
+eMBErrorCode eMBRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs, mb_iface_type_t iface)
 {
     eMBErrorCode error = ESP_ERR_INVALID_STATE;
-    MB_SLAVE_CHECK((slave_interface_ptr[MB_IFACE_TYPE_TCP] != NULL),
+    MB_SLAVE_CHECK((slave_interface_ptr[iface] != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Slave interface is not correctly initialized.");
 
-    if (slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_input) {
-        error = slave_interface_ptr[MB_IFACE_TYPE_TCP]->slave_reg_cb_input(pucRegBuffer, usAddress, usNRegs);
+    if (slave_interface_ptr[iface]->slave_reg_cb_input) {
+        error = slave_interface_ptr[iface]->slave_reg_cb_input(pucRegBuffer, usAddress, usNRegs, iface);
     } else {
-        error = mbc_reg_input_slave_cb(pucRegBuffer, usAddress, usNRegs, MB_IFACE_TYPE_TCP);
+        error = mbc_reg_input_slave_cb(pucRegBuffer, usAddress, usNRegs, iface);
     }
     return error;
 }

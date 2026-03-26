@@ -181,7 +181,7 @@ esp_err_t mbc_master_start(void)
 }
 
 eMBErrorCode eMBMasterRegDiscreteCB(UCHAR * pucRegBuffer, USHORT usAddress,
-                                        USHORT usNDiscrete)
+                                        USHORT usNDiscrete, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
     MB_MASTER_CHECK((master_interface_ptr != NULL),
@@ -190,12 +190,12 @@ eMBErrorCode eMBMasterRegDiscreteCB(UCHAR * pucRegBuffer, USHORT usAddress,
     MB_MASTER_CHECK((master_interface_ptr->master_reg_cb_discrete != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
-    error = master_interface_ptr->master_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete);
+    error = master_interface_ptr->master_reg_cb_discrete(pucRegBuffer, usAddress, usNDiscrete, iface);
     return error;
 }
 
 eMBErrorCode eMBMasterRegCoilsCB(UCHAR* pucRegBuffer, USHORT usAddress,
-                                    USHORT usNCoils, eMBRegisterMode eMode)
+                                    USHORT usNCoils, eMBRegisterMode eMode, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
     MB_MASTER_CHECK((master_interface_ptr != NULL),
@@ -205,12 +205,12 @@ eMBErrorCode eMBMasterRegCoilsCB(UCHAR* pucRegBuffer, USHORT usAddress,
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
     error = master_interface_ptr->master_reg_cb_coils(pucRegBuffer, usAddress,
-                                                        usNCoils, eMode);
+                                                        usNCoils, eMode, iface);
     return error;
 }
 
 eMBErrorCode eMBMasterRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
-                                    USHORT usNRegs, eMBRegisterMode eMode)
+                                    USHORT usNRegs, eMBRegisterMode eMode, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
     MB_MASTER_CHECK((master_interface_ptr != NULL),
@@ -220,12 +220,12 @@ eMBErrorCode eMBMasterRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
     error = master_interface_ptr->master_reg_cb_holding(pucRegBuffer, usAddress,
-                                                        usNRegs, eMode, MB_IFACE_TYPE_RTU);
+                                                        usNRegs, eMode, iface);
     return error;
 }
 
 eMBErrorCode eMBMasterRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress,
-                                    USHORT usNRegs)
+                                    USHORT usNRegs, mb_iface_type_t iface)
 {
     eMBErrorCode error = MB_ENOERR;
     MB_MASTER_CHECK((master_interface_ptr != NULL),
@@ -234,7 +234,7 @@ eMBErrorCode eMBMasterRegInputCB(UCHAR * pucRegBuffer, USHORT usAddress,
     MB_MASTER_CHECK((master_interface_ptr->master_reg_cb_input != NULL),
                     ESP_ERR_INVALID_STATE,
                     "Master interface is not correctly initialized.");
-    error = master_interface_ptr->master_reg_cb_input(pucRegBuffer, usAddress, usNRegs);
+    error = master_interface_ptr->master_reg_cb_input(pucRegBuffer, usAddress, usNRegs, iface);
     return error;
 }
 

@@ -62,7 +62,7 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 #if MB_FUNC_READ_COILS_ENABLED
 
 eMBException
-eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen, uint8_t iface )
 {
     USHORT          usRegAddress;
     USHORT          usDiscreteCnt;
@@ -109,7 +109,7 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
             *usLen += 1;
 
             eRegStatus =
-                eMBRegDiscreteCB( pucFrameCur, usRegAddress, usDiscreteCnt );
+                eMBRegDiscreteCB( pucFrameCur, usRegAddress, usDiscreteCnt, iface );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )

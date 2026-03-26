@@ -306,7 +306,7 @@ xMBASCIIReceiveFSM( void )
 
             /* Notify the caller of eMBASCIIReceive that a new frame
              * was received. */
-            (void)xMBPortEventPost( EV_FRAME_RECEIVED, MB_IFACE_TYPE_TCP );
+            (void)xMBPortEventPost( EV_FRAME_RECEIVED, MB_IFACE_TYPE_RTU );
         }
         else if( ucByte == ':' )
         {
@@ -402,7 +402,7 @@ xMBASCIITransmitFSM( void )
          * been sent. */
     case STATE_TX_NOTIFY:
         eSndState = STATE_TX_IDLE;
-        xMBPortEventPost( EV_FRAME_TRANSMIT, MB_IFACE_TYPE_TCP );
+        xMBPortEventPost( EV_FRAME_TRANSMIT, MB_IFACE_TYPE_RTU );
         xNeedPoll = FALSE;
         break;
 

@@ -58,12 +58,15 @@ bMBPortIsWithinException( void )
 }
 
 void
-vMBPortClose( void )
+vMBPortClose( uint8_t iface )
 {
     extern void     vMBPortSerialClose( void );
     extern void     vMBPortTimerClose( void );
-    extern void     vMBPortEventClose( void );
-    vMBPortSerialClose(  );
+    extern void     vMBPortEventClose( uint8_t iface );
+    if (iface == MB_IFACE_TYPE_RTU)
+    {
+        vMBPortSerialClose(  );
+    }
     vMBPortTimerClose(  );
-    vMBPortEventClose(  );
+    vMBPortEventClose(  iface );
 }

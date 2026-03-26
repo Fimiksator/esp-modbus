@@ -47,7 +47,7 @@
 #include "mbconfig.h"
 #include "port_serial_slave.h"
 /* ----------------------- Variables ----------------------------------------*/
-static QueueHandle_t xQueueHdl[MB_IFACE_CNT];
+static QueueHandle_t xQueueHdl[MB_IFACE_CNT] = {NULL, NULL};
 
 /* ----------------------- Start implementation -----------------------------*/
 BOOL

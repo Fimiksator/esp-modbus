@@ -296,7 +296,7 @@ eMBErrorCode eMBMasterRegCommonCB( UCHAR * pucData, USHORT usAddress,
  *   - eMBErrorCode::MB_EINVAL if value data can not be transferred
  */
 eMBErrorCode eMBMasterRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                        USHORT usNRegs );
+                                        USHORT usNRegs, mb_iface_type_t iface );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Holding Register</em> value is
@@ -325,7 +325,7 @@ eMBErrorCode eMBMasterRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       <b>ILLEGAL DATA ADDRESS</b> is sent as a response.
  */
 eMBErrorCode eMBMasterRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                        USHORT usNRegs, eMBRegisterMode eMode );
+                                        USHORT usNRegs, eMBRegisterMode eMode, mb_iface_type_t iface );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Coil Register</em> value is
@@ -354,7 +354,7 @@ eMBErrorCode eMBMasterRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       <b>ILLEGAL DATA ADDRESS</b> is sent as a response.
  */
 eMBErrorCode eMBMasterRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                        USHORT usNCoils, eMBRegisterMode eMode );
+                                        USHORT usNCoils, eMBRegisterMode eMode, mb_iface_type_t iface );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Input Discrete Register</em> value is
@@ -377,7 +377,7 @@ eMBErrorCode eMBMasterRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *       <b>ILLEGAL DATA ADDRESS</b> is sent as a response.
  */
 eMBErrorCode eMBMasterRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                        USHORT usNDiscrete );
+                                        USHORT usNDiscrete, mb_iface_type_t iface );
 
 /*! \ingroup modbus
  *\brief These Modbus functions are called for user when Modbus run in Master Mode.
@@ -410,23 +410,23 @@ eMBMasterReqReadDiscreteInputs( UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT u
 eMBException
 eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 eMBException
-eMBMasterFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen, mb_iface_type_t iface );
 
 /* \ingroup modbus
  * \brief These functions are interface for Modbus Master
