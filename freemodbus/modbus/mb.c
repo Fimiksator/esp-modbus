@@ -67,35 +67,37 @@
 /* ----------------------- Static variables ---------------------------------*/
 
 static UCHAR    ucMBAddress;
-static eMBMode  eMBCurrentMode;
+static eMBMode  eMBCurrentMode[MB_IFACE_CNT];
 
 volatile UCHAR ucMbSlaveBuf[MB_SERIAL_BUF_SIZE];
 
-static enum
+typedef enum
 {
     STATE_ENABLED,
     STATE_DISABLED,
     STATE_NOT_INITIALIZED
-} eMBState = STATE_NOT_INITIALIZED;
+} eMBState;
+
+eMBState eMbState[MB_IFACE_CNT] = {STATE_NOT_INITIALIZED, STATE_NOT_INITIALIZED};
 
 /* Functions pointer which are initialized in eMBInit( ). Depending on the
  * mode (RTU or ASCII) the are set to the correct implementations.
  */
-static peMBFrameSend peMBFrameSendCur;
-static pvMBFrameStart pvMBFrameStartCur;
-static pvMBFrameStop pvMBFrameStopCur;
-static peMBFrameReceive peMBFrameReceiveCur;
-static pvMBFrameClose pvMBFrameCloseCur;
+static peMBFrameSend peMBFrameSendCur[MB_IFACE_CNT];
+static pvMBFrameStart pvMBFrameStartCur[MB_IFACE_CNT];
+static pvMBFrameStop pvMBFrameStopCur[MB_IFACE_CNT];
+static peMBFrameReceive peMBFrameReceiveCur[MB_IFACE_CNT];
+static pvMBFrameClose pvMBFrameCloseCur[MB_IFACE_CNT];
 
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  */
-BOOL( *pxMBFrameCBByteReceived ) ( void );
-BOOL( *pxMBFrameCBTransmitterEmpty ) ( void );
-BOOL( *pxMBPortCBTimerExpired ) ( void );
-BOOL( *pxMBFrameCBReceiveFSMCur ) ( void );
-BOOL( *pxMBFrameCBTransmitFSMCur ) ( void );
+BOOL( *pxMBFrameCBByteReceived[MB_IFACE_CNT] ) ( void );
+BOOL( *pxMBFrameCBTransmitterEmpty[MB_IFACE_CNT] ) ( void );
+BOOL( *pxMBPortCBTimerExpired[MB_IFACE_CNT] ) ( void );
+BOOL( *pxMBFrameCBReceiveFSMCur[MB_IFACE_CNT] ) ( void );
+BOOL( *pxMBFrameCBTransmitFSMCur[MB_IFACE_CNT] ) ( void );
 
 /* An array of Modbus functions handlers which associates Modbus function
  * codes with implementing functions.
@@ -155,28 +157,28 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
         {
 #if MB_SLAVE_RTU_ENABLED > 0
         case MB_RTU:
-            pvMBFrameStartCur = eMBRTUStart;
-            pvMBFrameStopCur = eMBRTUStop;
-            peMBFrameSendCur = eMBRTUSend;
-            peMBFrameReceiveCur = eMBRTUReceive;
-            pvMBFrameCloseCur = MB_PORT_HAS_CLOSE ? vMBPortClose : NULL;
-            pxMBFrameCBByteReceived = xMBRTUReceiveFSM;
-            pxMBFrameCBTransmitterEmpty = xMBRTUTransmitFSM;
-            pxMBPortCBTimerExpired = xMBRTUTimerT35Expired;
+            pvMBFrameStartCur[MB_IFACE_TYPE_RTU] = eMBRTUStart;
+            pvMBFrameStopCur[MB_IFACE_TYPE_RTU] = eMBRTUStop;
+            peMBFrameSendCur[MB_IFACE_TYPE_RTU] = eMBRTUSend;
+            peMBFrameReceiveCur[MB_IFACE_TYPE_RTU] = eMBRTUReceive;
+            pvMBFrameCloseCur[MB_IFACE_TYPE_RTU] = MB_PORT_HAS_CLOSE ? vMBPortClose : NULL;
+            pxMBFrameCBByteReceived[MB_IFACE_TYPE_RTU] = xMBRTUReceiveFSM;
+            pxMBFrameCBTransmitterEmpty[MB_IFACE_TYPE_RTU] = xMBRTUTransmitFSM;
+            pxMBPortCBTimerExpired[MB_IFACE_TYPE_RTU] = xMBRTUTimerT35Expired;
 
             eStatus = eMBRTUInit( ucMBAddress, ucPort, ulBaudRate, eParity );
             break;
 #endif
 #if MB_SLAVE_ASCII_ENABLED > 0
         case MB_ASCII:
-            pvMBFrameStartCur = eMBASCIIStart;
-            pvMBFrameStopCur = eMBASCIIStop;
-            peMBFrameSendCur = eMBASCIISend;
-            peMBFrameReceiveCur = eMBASCIIReceive;
-            pvMBFrameCloseCur = MB_PORT_HAS_CLOSE ? vMBPortClose : NULL;
-            pxMBFrameCBByteReceived = xMBASCIIReceiveFSM;
-            pxMBFrameCBTransmitterEmpty = xMBASCIITransmitFSM;
-            pxMBPortCBTimerExpired = xMBASCIITimerT1SExpired;
+            pvMBFrameStartCur[MB_IFACE_TYPE_RTU] = eMBASCIIStart;
+            pvMBFrameStopCur[MB_IFACE_TYPE_RTU] = eMBASCIIStop;
+            peMBFrameSendCur[MB_IFACE_TYPE_RTU] = eMBASCIISend;
+            peMBFrameReceiveCur[MB_IFACE_TYPE_RTU] = eMBASCIIReceive;
+            pvMBFrameCloseCur[MB_IFACE_TYPE_RTU] = MB_PORT_HAS_CLOSE ? vMBPortClose : NULL;
+            pxMBFrameCBByteReceived[MB_IFACE_TYPE_RTU] = xMBASCIIReceiveFSM;
+            pxMBFrameCBTransmitterEmpty[MB_IFACE_TYPE_RTU] = xMBASCIITransmitFSM;
+            pxMBPortCBTimerExpired[MB_IFACE_TYPE_RTU] = xMBASCIITimerT1SExpired;
 
             eStatus = eMBASCIIInit( ucMBAddress, ucPort, ulBaudRate, eParity );
             break;
@@ -194,8 +196,8 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
             }
             else
             {
-                eMBCurrentMode = eMode;
-                eMBState = STATE_DISABLED;
+                eMBCurrentMode[MB_IFACE_TYPE_RTU] = eMode;
+                eMbState[MB_IFACE_TYPE_RTU] = STATE_DISABLED;
             }
         }
     }
@@ -215,7 +217,7 @@ eMBTCPInit( UCHAR ucSlaveUid, USHORT ucTCPPort )
     }
     else if( ( eStatus = eMBTCPDoInit( ucTCPPort ) ) != MB_ENOERR )
     {
-        eMBState = STATE_DISABLED;
+        eMbState[MB_IFACE_TYPE_TCP] = STATE_DISABLED;
     }
     else if( !xMBPortEventInit( MB_IFACE_TYPE_TCP ) )
     {
@@ -224,14 +226,14 @@ eMBTCPInit( UCHAR ucSlaveUid, USHORT ucTCPPort )
     }
     else
     {
-        pvMBFrameStartCur = eMBTCPStart;
-        pvMBFrameStopCur = eMBTCPStop;
-        peMBFrameReceiveCur = eMBTCPReceive;
-        peMBFrameSendCur = eMBTCPSend;
-        pvMBFrameCloseCur = MB_PORT_HAS_CLOSE ? vMBTCPPortClose : NULL;
+        pvMBFrameStartCur[MB_IFACE_TYPE_TCP] = eMBTCPStart;
+        pvMBFrameStopCur[MB_IFACE_TYPE_TCP] = eMBTCPStop;
+        peMBFrameReceiveCur[MB_IFACE_TYPE_TCP] = eMBTCPReceive;
+        peMBFrameSendCur[MB_IFACE_TYPE_TCP] = eMBTCPSend;
+        pvMBFrameCloseCur[MB_IFACE_TYPE_TCP] = MB_PORT_HAS_CLOSE ? vMBTCPPortClose : NULL;
         ucMBAddress = ucSlaveUid;
-        eMBCurrentMode = MB_TCP;
-        eMBState = STATE_DISABLED;
+        eMBCurrentMode[MB_IFACE_TYPE_TCP] = MB_TCP;
+        eMbState[MB_IFACE_TYPE_TCP] = STATE_DISABLED;
     }
     return eStatus;
 }
@@ -285,15 +287,15 @@ eMBRegisterCB( UCHAR ucFunctionCode, pxMBFunctionHandler pxHandler )
 
 
 eMBErrorCode
-eMBClose( void )
+eMBClose( mb_iface_type_t iface )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    if( eMBState == STATE_DISABLED )
+    if( eMbState[iface] == STATE_DISABLED )
     {
-        if( pvMBFrameCloseCur != NULL )
+        if( pvMBFrameCloseCur[iface] != NULL )
         {
-            pvMBFrameCloseCur(  );
+            pvMBFrameCloseCur[iface](  );
         }
     }
     else
@@ -304,15 +306,15 @@ eMBClose( void )
 }
 
 eMBErrorCode
-eMBEnable( void )
+eMBEnable( mb_iface_type_t iface )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    if( eMBState == STATE_DISABLED )
+    if( eMbState[iface] == STATE_DISABLED )
     {
         /* Activate the protocol stack. */
-        pvMBFrameStartCur(  );
-        eMBState = STATE_ENABLED;
+        pvMBFrameStartCur[iface](  );
+        eMbState[iface] = STATE_ENABLED;
     }
     else
     {
@@ -322,17 +324,17 @@ eMBEnable( void )
 }
 
 eMBErrorCode
-eMBDisable( void )
+eMBDisable( mb_iface_type_t iface )
 {
     eMBErrorCode    eStatus;
 
-    if( eMBState == STATE_ENABLED )
+    if( eMbState[iface] == STATE_ENABLED )
     {
-        pvMBFrameStopCur(  );
-        eMBState = STATE_DISABLED;
+        pvMBFrameStopCur[iface](  );
+        eMbState[iface] = STATE_DISABLED;
         eStatus = MB_ENOERR;
     }
-    else if( eMBState == STATE_DISABLED )
+    else if( eMbState[iface] == STATE_DISABLED )
     {
         eStatus = MB_ENOERR;
     }
@@ -357,7 +359,7 @@ eMBPoll( mb_iface_type_t iface )
     eMBEventType    eEvent;
 
     /* Check if the protocol stack is ready. */
-    if( eMBState != STATE_ENABLED )
+    if( eMbState[iface] != STATE_ENABLED )
     {
         return MB_EILLSTATE;
     }
@@ -374,7 +376,7 @@ eMBPoll( mb_iface_type_t iface )
 
         case EV_FRAME_RECEIVED:
             ESP_LOGD(MB_PORT_TAG, "EV_FRAME_RECEIVED");
-            eStatus = peMBFrameReceiveCur( &ucRcvAddress, &ucMBFrame, &usLength );
+            eStatus = peMBFrameReceiveCur[iface]( &ucRcvAddress, &ucMBFrame, &usLength );
             if( eStatus == MB_ENOERR )
             {
                 /* Check if the frame is for us. If not ignore the frame. */
@@ -410,7 +412,7 @@ eMBPoll( mb_iface_type_t iface )
 
             /* If the request was not sent to the broadcast address we
              * return a reply. In case of TCP the slave answers to broadcast address. */
-            if( ( ucRcvAddress != MB_ADDRESS_BROADCAST ) || ( eMBCurrentMode == MB_TCP ) )
+            if( ( ucRcvAddress != MB_ADDRESS_BROADCAST ) || ( eMBCurrentMode[iface] == MB_TCP ) )
             {
                 if( eException != MB_EX_NONE )
                 {
@@ -419,11 +421,11 @@ eMBPoll( mb_iface_type_t iface )
                     ucMBFrame[usLength++] = ( UCHAR )( ucFunctionCode | MB_FUNC_ERROR );
                     ucMBFrame[usLength++] = eException;
                 }
-                if( ( eMBCurrentMode == MB_ASCII ) && MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS )
+                if( ( eMBCurrentMode[iface] == MB_ASCII ) && MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS )
                 {
                     vMBPortTimersDelay( MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS );
                 }
-                eStatus = peMBFrameSendCur( ucMBAddress, ucMBFrame, usLength );
+                eStatus = peMBFrameSendCur[iface]( ucMBAddress, ucMBFrame, usLength );
             }
             break;
 

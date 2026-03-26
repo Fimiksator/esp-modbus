@@ -140,7 +140,7 @@ eMBRTUStart( void )
 #if CONFIG_FMB_TIMER_PORT_ENABLED
     vMBPortTimersEnable( );
 #else
-    pxMBPortCBTimerExpired();
+    pxMBPortCBTimerExpired[MB_IFACE_TYPE_RTU]();
 #endif
     EXIT_CRITICAL_SECTION(  );
 }

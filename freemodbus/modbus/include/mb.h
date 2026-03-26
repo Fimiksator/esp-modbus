@@ -196,7 +196,7 @@ eMBErrorCode    eMBTCPInit( UCHAR ucSlaveUid, USHORT usTCPPort );
  *   If the protocol stack is not in the disabled state it returns
  *   eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBClose( void );
+eMBErrorCode    eMBClose( mb_iface_type_t iface );
 
 /*! \ingroup modbus
  * \brief Enable the Modbus protocol stack.
@@ -208,7 +208,7 @@ eMBErrorCode    eMBClose( void );
  *   eMBErrorCode::MB_ENOERR. If it was not in the disabled state it
  *   return eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBEnable( void );
+eMBErrorCode    eMBEnable( mb_iface_type_t iface );
 
 /*! \ingroup modbus
  * \brief Disable the Modbus protocol stack.
@@ -219,7 +219,7 @@ eMBErrorCode    eMBEnable( void );
  *  eMBErrorCode::MB_ENOERR. If it was not in the enabled state it returns
  *  eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBDisable( void );
+eMBErrorCode    eMBDisable( mb_iface_type_t iface );
 
 /*! \ingroup modbus
  * \brief The main pooling loop of the Modbus protocol stack.

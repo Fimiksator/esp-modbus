@@ -80,7 +80,7 @@ static esp_err_t mbc_tcp_slave_start(void)
     eMBPortIpVer ip_ver = (mbs_opts->mbs_comm.ip_addr_type == MB_IPV4) ? MB_PORT_IPV4 : MB_PORT_IPV6;
     vMBTCPPortSlaveSetNetOpt(mbs_opts->mbs_comm.ip_netif_ptr, ip_ver, proto, (char*)mbs_opts->mbs_comm.ip_addr);
 
-    status = eMBEnable();
+    status = eMBEnable(MB_IFACE_TYPE_TCP);
     MB_SLAVE_CHECK((status == MB_ENOERR), ESP_ERR_INVALID_STATE,
                     "mb TCP stack start failure, eMBEnable() returned (0x%x).", (int)status);
     // Set the mbcontroller start flag
@@ -103,7 +103,7 @@ static esp_err_t mbc_tcp_slave_destroy(void)
     MB_SLAVE_CHECK((flag & MB_EVENT_STACK_STARTED),
                     ESP_ERR_INVALID_STATE, "mb stack stop event failure.");
     // Disable and then destroy the Modbus stack
-    mb_error = eMBDisable();
+    mb_error = eMBDisable(MB_IFACE_TYPE_TCP);
     MB_SLAVE_CHECK((mb_error == MB_ENOERR), ESP_ERR_INVALID_STATE, "mb stack disable failure.");
     (void)vTaskDelete(mbs_opts->mbs_task_handle);
     (void)vQueueDelete(mbs_opts->mbs_notification_queue_handle);

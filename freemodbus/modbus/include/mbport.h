@@ -236,11 +236,11 @@ void            vMBMasterCBRequestSuccess( uint64_t xTransId, UCHAR ucDestAddres
  *   a new byte was received. The port implementation should wake up the
  *   tasks which are currently blocked on the eventqueue.
  */
-extern          BOOL( *pxMBFrameCBByteReceived ) ( void );
+extern          BOOL( *pxMBFrameCBByteReceived[] ) ( void );
 
-extern          BOOL( *pxMBFrameCBTransmitterEmpty ) ( void );
+extern          BOOL( *pxMBFrameCBTransmitterEmpty[] ) ( void );
 
-extern          BOOL( *pxMBPortCBTimerExpired ) ( void );
+extern          BOOL( *pxMBPortCBTimerExpired[] ) ( void );
 
 #if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
 extern          BOOL( *pxMBMasterFrameCBByteReceived ) ( void );

@@ -89,12 +89,12 @@ static USHORT usMBPortSerialRxPoll(size_t xEventSize)
         // Get received packet into Rx buffer
         while(xReadStatus && (usCnt++ <= xEventSize)) {
             // Call the Modbus stack callback function and let it fill the buffers.
-            xReadStatus = pxMBFrameCBByteReceived(); // callback to execute receive FSM
+            xReadStatus = pxMBFrameCBByteReceived[MB_IFACE_TYPE_RTU](); // callback to execute receive FSM
         }
         uart_flush_input(ucUartNumber);
         // Send event EV_FRAME_RECEIVED to allow stack process packet
 #if !CONFIG_FMB_TIMER_PORT_ENABLED
-        pxMBPortCBTimerExpired();
+        pxMBPortCBTimerExpired[MB_IFACE_TYPE_RTU]();
 #endif
         ESP_LOGD(TAG, "RX: %u bytes\n", (unsigned)usCnt);
     }
@@ -110,7 +110,7 @@ BOOL xMBPortSerialTxPoll(void)
         // Continue while all response bytes put in buffer or out of buffer
         while((bNeedPoll) && (usCount++ < MB_SERIAL_BUF_SIZE)) {
             // Calls the modbus stack callback function to let it fill the UART transmit buffer.
-            bNeedPoll = pxMBFrameCBTransmitterEmpty( ); // callback to transmit FSM
+            bNeedPoll = pxMBFrameCBTransmitterEmpty[MB_IFACE_TYPE_RTU]( ); // callback to transmit FSM
         }
         ESP_LOGD(TAG, "MB_TX_buffer send: (%u) bytes\n", (unsigned)usCount);
         // Waits while UART sending the packet

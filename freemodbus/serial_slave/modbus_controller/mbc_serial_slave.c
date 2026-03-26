@@ -92,7 +92,7 @@ static esp_err_t mbc_serial_slave_start(void)
 
     MB_SLAVE_CHECK((status == MB_ENOERR), ESP_ERR_INVALID_STATE,
                     "mb stack initialization failure, eMBInit() returns (0x%x).", (int)status);
-    status = eMBEnable();
+    status = eMBEnable(MB_IFACE_TYPE_RTU);
     MB_SLAVE_CHECK((status == MB_ENOERR), ESP_ERR_INVALID_STATE,
                     "mb stack set slave ID failure, eMBEnable() returned (0x%x).", (int)status);
     // Set the mbcontroller start flag
@@ -155,12 +155,12 @@ static esp_err_t mbc_serial_slave_destroy(void)
     MB_SLAVE_CHECK((flag & MB_EVENT_STACK_STARTED),
                         ESP_ERR_INVALID_STATE, "mb stack stop event failure.");
     // Disable and then destroy the Modbus stack
-    mb_error = eMBDisable();
+    mb_error = eMBDisable(MB_IFACE_TYPE_RTU);
     MB_SLAVE_CHECK((mb_error == MB_ENOERR), ESP_ERR_INVALID_STATE, "mb stack disable failure.");
     (void)vTaskDelete(mbs_opts->mbs_task_handle);
     (void)vQueueDelete(mbs_opts->mbs_notification_queue_handle);
     (void)vEventGroupDelete(mbs_opts->mbs_event_group);
-    mb_error = eMBClose();
+    mb_error = eMBClose(MB_IFACE_TYPE_RTU);
     MB_SLAVE_CHECK((mb_error == MB_ENOERR), ESP_ERR_INVALID_STATE,
                         "mb stack close failure returned (0x%x).", (int)mb_error);
     mbs_interface_ptr = NULL;
